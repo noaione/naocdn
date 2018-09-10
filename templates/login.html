@@ -1,0 +1,49 @@
+<head>
+    <link rel="shortcut icon" href="https://blog.n4o.xyz/favicon.png">
+    <title>N4O - Login</title>
+    <meta name="description" content="n4o meme hosting for image and file serving">
+  <style type="text/css">
+  body {
+      width: 600px;
+      margin: 10px auto;
+      text-align: center;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+  }
+  </style>
+  </head>
+  {% block body %}
+  {% if session['logged_in'] %}
+  <p>You're logged in already!</p>
+  {% else %}
+   
+   
+  <form action="/login" method="POST">
+      <div class="login">
+          <div class="login-screen">
+              <div class="app-title">
+                  <h2>Authorized Login Only</h2>
+                  <p>Access to this page is restricted<br /> Ask N4O#8868 at Discord for Access<br /><font color="red">{{ problem }}</font></p>
+              </div>
+   
+              <div class="login-form">
+                  <div class="control-group">
+                  Enter Username: <input type="text" class="login-field" value="" placeholder="Your Username" name="username">
+                  <label class="login-field-icon fui-user" for="login-name"></label>
+                  </div>
+   
+                  <div class="control-group">
+                  Enter Password: &nbsp;<input type="password" class="login-field" value="" placeholder="Your Password" name="password">
+                  <label class="login-field-icon fui-lock" for="login-pass"></label>
+                  </div>
+                  <br />
+                  <input type="submit" value="Gain Access" class="btn btn-primary btn-large btn-block" >
+                  <br>
+              </div>
+          </div>
+      </div>
+  </form>
+   
+  {% endif %}
+  {% endblock %}03+
+  

@@ -1,0 +1,48 @@
+<head>
+    <link rel="shortcut icon" href="https://blog.n4o.xyz/favicon.png">
+    <title>N4O - Register/Invite</title>
+    <meta name="description" content="n4o meme hosting for image and file serving">
+  <style type="text/css">
+  body {
+      width: 600px;
+      margin: 10px auto;
+      text-align: center;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+  }
+  </style>
+  </head>
+  {% block body %}
+  
+  <form action="/register" method="POST">
+      <div class="login">
+          <div class="login-screen">
+              <div class="app-title">
+                  <h2>Welcome to my invite page</h2>
+                  <p>Ask N4O#8868 at Discrod for Invite :teehee:<br /><font color="red">{{ problem }}</font></p>
+              </div>
+   
+              <div class="login-form">
+                  <div class="control-group">
+                  Enter Invite Code: <input type="text" class="login-field" value="" placeholder="Invite code (16 digit)" name="invitecode">
+                  <label class="login-field-icon fui-user" for="login-name"></label>
+                  </div>
+   
+                  <div class="control-group">
+                  Enter Desired Username: <input type="text" class="login-field" value="" placeholder="Your Username" name="username">
+                  <label class="login-field-icon fui-user" for="login-name"></label>
+                  </div>
+  
+                  <div class="control-group">
+                  Enter Desired Password: &nbsp;<input type="password" class="login-field" value="" placeholder="Your Password" name="password">
+                  <label class="login-field-icon fui-lock" for="login-pass"></label>
+                  </div>
+                  <br />
+                  <input type="submit" value="Register" class="btn btn-primary btn-large btn-block" >
+                  <br>
+              </div>
+          </div>
+      </div>
+  </form>
+   
+  {% endblock %}

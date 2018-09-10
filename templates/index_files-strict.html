@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="shortcut icon" href="https://blog.n4o.xyz/favicon.png">
+  <title>N4O - WebFiles (RESTRICTED!)</title>
+  <meta name="description" content="n4o meme hosting for image and file serving">
+<style type="text/css">
+body {
+    width: 800px;
+    margin: 10px auto;
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+}
+</style>
+<body>
+<h4><a href="https://blog.n4o.xyz">web</a> | <a href="https://github.com/noaione/noaione.github.io">manage</a> | <a href="{{ rooturl }}login">login</a> | <a href="{{ rooturl2 }}register">register</a></h4>
+<p><strong>Filename</strong> || Filesize || Download button</p>
+<p>
+{%- for item in tree.children recursive %}
+    <strong>{{ item.name }}</strong> || {{ item.size }} || <button type="button" onclick="window.location.href='{{ rooturl3 }}files/r/{{ item.name }}' ">Download</button><br />
+{%- endfor %}
+</p>
+</body>
+</head>
+</html>

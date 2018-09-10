@@ -7,7 +7,7 @@ import datetime
 import os
 
 from functools import wraps
-from flask import Flask, flash, render_template_string, redirect, request, url_for, jsonify, abort, send_from_directory, Response, send_file, session
+from flask import Flask, flash, render_template, redirect, request, url_for, jsonify, abort, send_from_directory, Response, send_file, session
 from flask_socketio import SocketIO, emit
 from io import StringIO
 from logging.handlers import RotatingFileHandler
@@ -18,254 +18,10 @@ flasocket = SocketIO(app)
 
 @flasocket.on('disconnect')
 def disconnect_user():
-    session.pop('logged_in', None)
-
-TEMPLATEFILES = """
-<!DOCTYPE html>
-<html>
-<head>
-  <link rel="shortcut icon" href="https://blog.n4o.xyz/favicon.png">
-  <title>N4O - WebFiles</title>
-  <meta name="description" content="n4o meme hosting for image and file serving">
-<style type="text/css">
-body {
-    width: 600px;
-    margin: 10px auto;
-    text-align: center;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
-}
-</style>
-<body>
-<p>nothing here :(</p>
-<h4><a href="https://blog.n4o.xyz">web</a> | <a href="https://github.com/noaione/noaione.github.io">manage</a> | <a href="{{ rooturl }}login">login</a> | <a href="{{ rooturl2 }}register">register</a></h4>
-</body>
-</head>
-</html>
-"""
-
-TEMPLATEFILESTRICT = """
-<!DOCTYPE html>
-<html>
-<head>
-  <link rel="shortcut icon" href="https://blog.n4o.xyz/favicon.png">
-  <title>N4O - WebFiles (RESTRICTED!)</title>
-  <meta name="description" content="n4o meme hosting for image and file serving">
-<style type="text/css">
-body {
-    width: 800px;
-    margin: 10px auto;
-    text-align: center;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
-}
-</style>
-<body>
-<h4><a href="https://blog.n4o.xyz">web</a> | <a href="https://github.com/noaione/noaione.github.io">manage</a> | <a href="{{ rooturl }}login">login</a> | <a href="{{ rooturl2 }}register">register</a></h4>
-<p><strong>Filename</strong> || Filesize || Download button</p>
-<p>
-{%- for item in tree.children recursive %}
-    <strong>{{ item.name }}</strong> || {{ item.size }} || <button type="button" onclick="window.location.href='{{ rooturl3 }}files/r/{{ item.name }}' ">Download</button><br />
-{%- endfor %}
-</p>
-</body>
-</head>
-</html>
-"""
-
-FZFPAGE = """
-<!DOCTYPE html>
-<html>
-
-  <head>
-    <link rel="icon" href="https://blog.n4o.xyz/favicon.png">
-    <title>N4O WebFiles - Whoops! 404</title>
-
-    <meta name="description" content="blog.n4o.xyz files hosting but link not found :(">
-
-    <style type="text/css">
-      body {
-        position: absolute;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
-        width: 600px;
-        height: 650px;
-        left: 50%;
-        top: 50%;
-        margin-left: -390px;
-        margin-top: -325px;
-        text-align: center;
-        background-color: rgb(237, 237, 237);
-        color: rgb(100,100,100);
-      }
-
-    </style>
-
-    <body>
-      <h2><img src="https://static.thenounproject.com/png/801773-200.png" alt="Logo" /></h2>
-      <h1>404</h1>
-      <h3><b>Not Found</b></h3>
-      <p>Link requested are not found in this server.<br />Please contact this website administrator<br />Discord: N4O#8868 | email: admin@n4o.xyz</p>
-      <span style="font-size: 10pt"><a href="https://blog.n4o.xyz">web</a> || <a href="https://github.com/noaione/noaione.github.io">manage</a></span>
-    </body>
-  </head>
-
-</html>
-"""
-
-TEMPLATEIMAGE = """
-<!DOCTYPE html>
-<html>
-<head>
-  <link rel="shortcut icon" href="https://blog.n4o.xyz/favicon.png">
-  <title>N4O - WebFiles</title>
-  <meta name="description" content="n4o meme hosting for image and file serving">
-<style type="text/css">
-body {
-    width: 600px;
-    margin: 10px auto;
-    text-align: center;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
-}
-</style>
-<body>
-<p>nothing here :(</p>
-<h4><a href="https://blog.n4o.xyz">web</a> | <a href="https://github.com/noaione/noaione.github.io">manage</a> | <a href="{{ rooturl }}login">login</a> | <a href="{{ rooturl2 }}register">register</a></h4>
-</body>
-</head>
-</html>
-"""
-
-TEMPLATE = """
-<!DOCTYPE html>
-<html>
-<head>
-  <link rel="icon" href="https://blog.n4o.xyz/favicon.png">
-  <title>N4O WebFiles Main Page</title>
-
-  <meta name="description" content="blog.n4o.xyz files hosting">
-
-<style type="text/css">
-body {
-    width: 900px;
-    margin: 10px auto;
-    text-align: center;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
-}
-</style>
-</head>
-<body>
-<p><img src="https://i.warosu.org/data/biz/img/0022/71/1496517555527.jpg" width=200 height=200 alt="Logo" /></p>
-<h1>N4O WebFiles Main Page</h1>
-<p>Seems like you get to my image/files web hosting</p>
-<p>Public shortener: `curl -F="url=your.long/url/that/you/want/to/shorten" {{ rooturl }}
-<h4><a href="https://blog.n4o.xyz">web</a> | <a href="https://github.com/noaione/noaione.github.io">manage</a> | <a href="{{ rooturl2 }}login">login</a> | <a href="{{ rooturl3 }}register">register</a></h4>
-</body>
-</html>
-"""
-
-LOGINTEMPLATE = """
-<head>
-  <link rel="shortcut icon" href="https://blog.n4o.xyz/favicon.png">
-  <title>N4O - Login</title>
-  <meta name="description" content="n4o meme hosting for image and file serving">
-<style type="text/css">
-body {
-    width: 600px;
-    margin: 10px auto;
-    text-align: center;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
-}
-</style>
-</head>
-{% block body %}
-{% if session['logged_in'] %}
-<p>You're logged in already!</p>
-{% else %}
- 
- 
-<form action="/login" method="POST">
-	<div class="login">
-		<div class="login-screen">
-			<div class="app-title">
-				<h2>Authorized Login Only</h2>
-                <p>Access to this page is restricted<br /> Ask N4O#8868 at Discord for Access<br /><font color="red">{{ problem }}</font></p>
-			</div>
- 
-			<div class="login-form">
-				<div class="control-group">
-				Enter Username: <input type="text" class="login-field" value="" placeholder="Your Username" name="username">
-				<label class="login-field-icon fui-user" for="login-name"></label>
-				</div>
- 
-				<div class="control-group">
-				Enter Password: &nbsp;<input type="password" class="login-field" value="" placeholder="Your Password" name="password">
-				<label class="login-field-icon fui-lock" for="login-pass"></label>
-				</div>
-                <br />
-                <input type="submit" value="Gain Access" class="btn btn-primary btn-large btn-block" >
-			    <br>
-			</div>
-		</div>
-	</div>
-</form>
- 
-{% endif %}
-{% endblock %}
-"""
-
-INVITEDTEMPLATE = """
-<head>
-  <link rel="shortcut icon" href="https://blog.n4o.xyz/favicon.png">
-  <title>N4O - Register/Invite</title>
-  <meta name="description" content="n4o meme hosting for image and file serving">
-<style type="text/css">
-body {
-    width: 600px;
-    margin: 10px auto;
-    text-align: center;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
-}
-</style>
-</head>
-{% block body %}
-
-<form action="/register" method="POST">
-	<div class="login">
-		<div class="login-screen">
-			<div class="app-title">
-				<h2>Welcome to my invite page</h2>
-                <p>Ask N4O#8868 at Discrod for Invite :teehee:<br /><font color="red">{{ problem }}</font></p>
-			</div>
- 
-			<div class="login-form">
-				<div class="control-group">
-				Enter Invite Code: <input type="text" class="login-field" value="" placeholder="Invite code (16 digit)" name="invitecode">
-				<label class="login-field-icon fui-user" for="login-name"></label>
-				</div>
- 
-				<div class="control-group">
-				Enter Desired Username: <input type="text" class="login-field" value="" placeholder="Your Username" name="username">
-				<label class="login-field-icon fui-user" for="login-name"></label>
-				</div>
-
-				<div class="control-group">
-				Enter Desired Password: &nbsp;<input type="password" class="login-field" value="" placeholder="Your Password" name="password">
-				<label class="login-field-icon fui-lock" for="login-pass"></label>
-				</div>
-                <br />
-                <input type="submit" value="Gain Access" class="btn btn-primary btn-large btn-block" >
-			    <br>
-			</div>
-		</div>
-	</div>
-</form>
- 
-{% endblock %}
-"""
+    try:
+        session.pop('n4o_logged', None)
+    except:
+        session.pop('logged_in', None)
 
 def check_auth(username, password):
     """This function is called to check if a username /
@@ -284,6 +40,14 @@ def check_auth(username, password):
         return True
     return False
 
+def check_auth2(username, password):
+    """This function is called to check if a username /
+    password combination is valid.
+    """
+    if username == 'admin' and password == 'admin': # CHANGE THIS
+        return True
+    return False
+
 def authenticate():
     """Sends a 401 response that enables basic auth"""
     return Response("ERROR: Not Authorized to use this command or access this page", 401, {'WWW-Authenticate': 'Secret things="Login Required"'})
@@ -296,6 +60,17 @@ def requires_auth(f):
             session['logged_in'] = False
             return authenticate()
         session['logged_in'] = True
+        return f(*args, **kwargs)
+    return decorated
+
+def superadmin_only(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth2(auth.username, auth.password):
+            session['n4o_logged'] = False
+            return authenticate()
+        session['n4o_logged'] = True
         return f(*args, **kwargs)
     return decorated
 
@@ -407,7 +182,7 @@ def fileslock(filename):
     if not session.get('logged_in'):
         lastpage = '/files/r/{}'.format(filename)
         log.info('User hasn\'t logged in, sending login form')
-        return render_template_string(LOGINTEMPLATE, problem='')
+        return render_template(LOGINTEMPLATE, problem='')
     lastpage = None
     log.info('User logged in, sending files')
     m = _DIRPATH+'\\files\\locked\\'
@@ -416,12 +191,12 @@ def fileslock(filename):
 @app.route('/i/')
 def imdex():
     log.info('Sending image index page')
-    return render_template_string(TEMPLATEIMAGE, rooturl=root, rooturl2=root)
+    return render_template(TEMPLATEIMAGE, rooturl=root, rooturl2=root)
 
 @app.route('/files/')
 def findex():
     log.info('Sending files index page')
-    return render_template_string(TEMPLATEFILES, rooturl=root, rooturl2=root)
+    return render_template(TEMPLATEFILES, rooturl=root, rooturl2=root)
 
 @app.route('/files/r/')
 def lockfindex():
@@ -431,10 +206,40 @@ def lockfindex():
     if not session.get('logged_in'):
         lastpage = '/files/r'
         log.info('User hasn\'t logged in, sending login form')
-        return render_template_string(LOGINTEMPLATE, problem='')
+        return render_template(LOGINTEMPLATE, problem='')
     lastpage = None
     log.info('User logged in, sending template page')
-    return render_template_string(TEMPLATEFILESTRICT, tree=listfile(), rooturl=root, rooturl2=root, rooturl3=root)
+    return render_template(TEMPLATEFILESTRICT, tree=listfile(), rooturl=root, rooturl2=root, rooturl3=root)
+
+@requires_auth
+def delfile(file):
+    f1 = [f for f in os.listdir(_DIRPATH+'\\files') if os.path.isfile(os.path.join(_DIRPATH+'\\files', f))]
+    f2 = [f for f in os.listdir(_DIRPATH+'\\files\\locked') if os.path.isfile(os.path.join(_DIRPATH+'\\files\\locked', f))]
+    i1 = [f for f in os.listdir(_DIRPATH+'\\i') if os.path.isfile(os.path.join(_DIRPATH+'\\i', f))]
+    if file in f1:
+        os.remove(_DIRPATH+'\\files\\'+file)
+        return True
+    if file in f2:
+        os.remove(_DIRPATH+'\\files\\locked\\'+file)
+        return True
+    if file in i1:
+        os.remove(_DIRPATH+'\\i\\'+file)
+        return True
+    return False
+
+@superadmin_only
+def create_invite(customcode):
+    if len(str(customcode)) != 16:
+        return jsonify({'ERROR': 'invitecode can only be a length of 16 character'})
+    with open(_DIRPATH+'\\invites.txt', 'r') as f:
+        inv = f.readlines()
+    with open(_DIRPATH+'\\invites.txt', 'w') as f:
+        dd = ''
+        for e in inv:
+            dd += e+'\n'
+        dd += request.form['invitecode']+'\n'
+        f.write(dd)
+    return jsonify({'SUCCESS': 'Created invite code of `{}`, give it to the friend now!'.format(request.form['file'])})
 
 @requires_auth
 def deleteshort(short_url):
@@ -461,15 +266,14 @@ def deleteshort(short_url):
     log.info('Success deleting `{}`'.format(short_url))
     return jsonify({"success": "short url \"{url}\" deleted".format(url=url)})
 
-@app.route('/', methods=['GET', 'POST', 'DELETE'])
+@app.route('/', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def index():
     global root
     log.info('Requesting Index')
     root = request.url_root
     if request.method == 'POST':
-        if 'files' in request.files:
-            print(request.form['filename'])
-            te = upfile(request.files['files'], request.form['filename'])
+        if 'file' in request.files:
+            te = upfile(request.files['file'], request.form['filename'])
             if not isinstance(te, str):
                 return te
             return jsonify({'url': root[:-1]+te})
@@ -479,9 +283,18 @@ def index():
 
         abort(404)
     elif request.method == 'DELETE':
-        return deleteshort(request.form['url'])
+        if 'file' in request.form:
+            m = delfile(request.form['file'])
+            if m:
+                return jsonify({'SUCCESS': 'File `{}` deleted from the server'.format(request.form['file'])})
+            return jsonify({'FAILED': 'File `{}` doesn\'t exists on this server'.format(request.form['file'])})
+        elif 'url' in request.form:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+            return deleteshort(request.form['url'])
+    elif request.method == 'PUT':
+        if 'invitecode' in request.form:
+            return create_invite(request.form['invitecode'])
     else:
-        return render_template_string(TEMPLATE, rooturl=root, rooturl2=root, rooturl3=root)
+        return render_template(TEMPLATE, rooturl=root, rooturl2=root, rooturl3=root)
 
 @app.route('/listing', methods=['GET'])
 def _list():
@@ -507,17 +320,18 @@ def redirect_url(hash):
 
 @app.errorhandler(404)
 def not_found(e):
+    root = request.url_root
+    path = request.path[1:]
     log.error(e)
-    return render_template_string(FZFPAGE), 404
+    return render_template(ERRPAGE, errcode='404', errmsg='Not Found', extrainfo='Link `{}` are not found in this server.'.format(path), rooturl=root), 404
 
 @app.errorhandler(401)
 def not_authenticated(e):
     log.error(e)
-    return "You're not authorized <br />Either you put the wrong username or password combination or the login info doesn't exist", 401
+    return render_template(ERRPAGE, errcode='404', errmsg='Not Authorized', extrainfo='Either you put the wrong username or password combination or the login info doesn\'t exist.'), 401
 
 @app.route('/register', methods=['GET', 'POST'])
 def registuser():
-    root = request.url_root
     if request.method == 'POST':
         with open(_DIRPATH+'\\invites.txt', 'r') as f:
             invitelist = f.readlines()
@@ -525,11 +339,11 @@ def registuser():
         if len(str(ucode)) != 16:
             log.error('User tried to register, but provided more or less than 16 digit code')
             flash('Invite code can only be 16 digit', category='error')
-            return render_template_string(INVITEDTEMPLATE, problem='Invite code can only be 16 digit')
+            return render_template(INVITEDTEMPLATE, problem='Invite code can only be 16 digit')
         if ucode not in invitelist:
             log.error('User tried to register, but provided wrong invite code')
             flash('Invite code not found or used already', category='error')
-            return render_template_string(INVITEDTEMPLATE, problem='Invite code not found or used already')
+            return render_template(INVITEDTEMPLATE, problem='Invite code not found or used already')
 
         usern = request.form['username']
         passw = request.form['username']
@@ -553,10 +367,10 @@ def registuser():
         
         session['logged_in'] = True
         log.info('Registered user, Username `{}`, password `{}`'.format(usern, passw))
-        return redirect(root)
+        return render_template(INVITEDTEMPLATE, problem='You\'re Successfully Registered')
     else:
         log.info('User requested register via GET method')
-        return render_template_string(INVITEDTEMPLATE, problem='')
+        return render_template(INVITEDTEMPLATE, problem='')
 
 @app.route('/login', methods=['GET', 'POST'])
 def do_admin_login():
@@ -568,7 +382,7 @@ def do_admin_login():
             session['logged_in'] = True
         else:
             log.error('Someone tried to logged in but failed, wrong Username or password')
-            return render_template_string(LOGINTEMPLATE, problem='Wrong Username or Password combination')
+            return render_template(LOGINTEMPLATE, problem='Wrong Username or Password combination')
         if lastpage is None:
             return redirect(root)
         else:
@@ -576,23 +390,67 @@ def do_admin_login():
     else:
         log.info('User requested login via GET method')
         lastpage = None
-        return render_template_string(LOGINTEMPLATE, problem='')
+        return render_template(LOGINTEMPLATE, problem='')
 
 def makesure():
     log.debug('Make sure everything is ready and not buggy')
     global lastpage
     global _DIRPATH
+    global ERRPAGE
+    global TEMPLATE
+    global TEMPLATEFILES
+    global TEMPLATEFILESTRICT
+    global TEMPLATEIMAGE
+    global LOGINTEMPLATE
+    global INVITEDTEMPLATE
     lastpage = None
     _DIRPATH = os.path.dirname(os.path.realpath(__file__))
+    # Check necessary files
     if not os.path.isfile(_DIRPATH+'\\url_list.p'):
         with open(_DIRPATH+'\\url_list.p', 'wb') as fms:
-            pickle.dump(('PADDING', ''), fms)
+            pickle.dump([('PADDING', '')], fms)
     if not os.path.isfile(_DIRPATH+'\\auth.json'):
         with open(_DIRPATH+'\\auth.json', 'w') as fms:
             json.dump({'0': {'username': 'admin', 'password': 'admin'}}, fms)
     if not os.path.isfile(_DIRPATH+'\\invites.txt'):
         with open(_DIRPATH+'\\invites.txt', 'w') as fms:
             fms.write('')
+    # Check template page
+    if not os.path.isfile(_DIRPATH+'\\templates\\error_page.html'):
+        raise FileNotFoundError('template page of \'error_page\' not found')
+    else:
+        ERRPAGE = 'error_page.html'
+    if not os.path.isfile(_DIRPATH+'\\templates\\index.html'):
+        raise FileNotFoundError('template page of \'index\' not found')
+    else:
+        TEMPLATE = 'index.html'
+    if not os.path.isfile(_DIRPATH+'\\templates\\index_files.html'):
+        raise FileNotFoundError('template page of \'index_files\' not found')
+    else:
+        TEMPLATEFILES = 'index_files.html'
+    if not os.path.isfile(_DIRPATH+'\\templates\\index_files-strict.html'):
+        raise FileNotFoundError('template page of \'index_files-strict\' not found')
+    else:
+        TEMPLATEFILESTRICT = 'index_files-strict.html'
+    if not os.path.isfile(_DIRPATH+'\\templates\\index_img.html'):
+        raise FileNotFoundError('template page of \'index_img\' not found')
+    else:
+        TEMPLATEIMAGE = 'index_img.html'
+    if not os.path.isfile(_DIRPATH+'\\templates\\login.html'):
+        raise FileNotFoundError('template page of \'login\' not found')
+    else:
+        LOGINTEMPLATE = 'login.html'
+    if not os.path.isfile(_DIRPATH+'\\templates\\register.html'):
+        raise FileNotFoundError('template page of \'register\' not found')
+    else:
+        INVITEDTEMPLATE = 'register.html'
+    # Check folder
+    if not os.path.isdir(_DIRPATH+'\\files'):
+        os.makedirs(_DIRPATH+'\\files')
+    if not os.path.isdir(_DIRPATH+'\\files\\locked'):
+        os.makedirs(_DIRPATH+'\\files\\locked')
+    if not os.path.isdir(_DIRPATH+'\\i'):
+        os.makedirs(_DIRPATH+'\\i')
     log.debug('Everything is OK!')
 
 if __name__ == '__main__':
@@ -612,4 +470,4 @@ if __name__ == '__main__':
     print('@@ Making sure everything is ready')
     makesure()
     print('@@ Server booted up')
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', debug=True)

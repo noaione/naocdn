@@ -1,3 +1,4 @@
-flask
-gunicorn
-flask_socketio
+flask==1.0.2
+gunicorn==19.9.0
+flask-socketio==3.0.1
+uwsgi==2.0.17.1
